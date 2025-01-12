@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,40 +10,35 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --fc-today-bg-color: rgba(96, 95, 95, 0.15);
+    --fc-now-indicator-color: rgb(171, 4, 4);
+    --fc-border-color: #606060;
     --background: #262626;
     --foreground: #ededed;
     
   }
 }
 
+.headerImage {
+  opacity: 100%;
+  filter: invert(100%);
+}
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.rotate {
-  animation: rotation 2s infinite linear;
-}
-
-.headerImage {
-  opacity: 100%;
-  filter: invert(100%);
-}
 
 .calMain {
   text-align: center;
-  --background: #262626;
-  --foreground: #ededed;
+  background: #262626;
+  display: flex;      
+  max-height: 100vh; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: space-between; 
+  width: auto;
 }
 
 .calSideBarA {
@@ -154,3 +150,52 @@ body {
   padding-left: 2px;
   font-size: 15px;
 }
+
+input {
+  @apply px-2;
+}
+  .fc-header-toolbar {
+    display: block;
+    padding: 4px 4px;
+    
+    @apply space-x-8;
+}
+
+.fc-day {
+  @apply m-8;
+}
+
+.fc-scrollgrid-sync-table {
+  @apply w-full;
+}
+
+.fc-view {
+  background: #262626;
+  width: auto; 
+  height: 100%;
+}
+
+.fc-h-event {
+  @apply bg-violet-500 border border-violet-600 ;
+  
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  @apply bg-blue-100 ;
+}
+
+.fc .fc-button{
+  @apply bg-blue-800 hover:bg-blue-900  ;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  @apply bg-blue-600;
+}
+
+.fc .fc-button-primary:disabled {
+  @apply bg-blue-600;
+}
+.fc-v-event {
+  @apply bg-blue-500 border border-blue-600 ;
+  
+} 

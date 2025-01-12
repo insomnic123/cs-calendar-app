@@ -4,6 +4,14 @@ import Image from "next/image";
 import Skibidi from '@/components/Skibidi';
 import {Calendar} from "@nextui-org/calendar";
 import {today, getLocalTimeZone} from "@internationalized/date";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin, { Draggable, DropArg } from '@fullcalendar/interaction'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import React from 'react';
+import dynamic from 'next/dynamic';
+
+const Fc = dynamic(() => import('C:\Users\qazia\Desktop\CS12\Calendar App\cs-calendar-app\components\FullCalendar.js'), { ssr: false });
 
 export default function Home() {
   return (<>
@@ -32,7 +40,11 @@ export default function Home() {
       </ul>
     </div>
     <div className = "calMain">
-      <Skibidi/>
+      <div className = "grid grid-cols-10">
+        <div className = "col-span-8">
+          <Fc/>
+        </div>
+      </div>
     </div>
     <div className = "calSideBarB">
     </div>
