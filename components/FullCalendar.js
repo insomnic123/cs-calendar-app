@@ -15,42 +15,43 @@ const Calendar = () => {
       try {
         const res = await fetch("http://localhost:8080/api/events");
         const data = await res.json();
-  
+
         const formattedEvents = data.map((event) => ({
-          title: event.name, 
+          id: event.id,
+          title: event.name,
           start: event.startTime,
           end: event.endTime,
           color: event.color,
         }));
-  
-        setEvents(formattedEvents); 
+
+        setEvents(formattedEvents);
       } catch (error) {
         console.error("Failed to fetch events:", error);
       }
     };
-  
+
     fetchEvents();
   }, []);
 
+  // handle WebSocket updates for real-time events
   useEffect(() => {
     connectWebSocket((newEvent) => {
       console.log("New WebSocket Event:", newEvent);
-  
       setEvents((prevEvents) => [
         ...prevEvents,
         {
-          title: newEvent.name, 
+          id: newEvent.id,
+          title: newEvent.name,
           start: newEvent.startTime,
           end: newEvent.endTime,
           color: newEvent.color,
         },
       ]);
     });
-  
-    return () => disconnectWebSocket(); 
+
+    return () => disconnectWebSocket();
   }, []);
   
-
   const [selectedEvent, setSelectedEvent] = useState(null); 
   const [lastClickTime, setLastClickTime] = useState(null); 
 
@@ -63,60 +64,91 @@ const Calendar = () => {
         },
         body: JSON.stringify(newEvent),
       });
+  
       if (response.ok) {
         const createdEvent = await response.json();
-        setEvents((prevEvents) => [...prevEvents, createdEvent]); 
+        const formattedEvent = {
+          id: createdEvent.id, // ensure 'id' is included
+          title: createdEvent.name,
+          start: createdEvent.startTime,
+          end: createdEvent.endTime,
+          color: createdEvent.color,
+        };
+  
+        // Update the state directly with the new event
+        setEvents((prevEvents) => [...prevEvents, formattedEvent]);
       } else {
         console.error("Failed to create event");
       }
     } catch (error) {
       console.error("Error creating event:", error);
     }
-  };  
+  };
 
-  const updateEvent = async (event) => {
+  const fetchEventsFromBackend = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/events/${event.id}`, {
+      const res = await fetch("http://localhost:8080/api/events");
+      const data = await res.json();
+  
+      const formattedEvents = data.map((event) => ({
+        id: event.id,
+        title: event.name,
+        start: event.startTime,
+        end: event.endTime,
+        color: event.color,
+      }));
+  
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+    }
+  };  
+  
+  const updateEvent = async (updatedEvent) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(event),
+        body: JSON.stringify({
+          id: updatedEvent.id,
+          name: updatedEvent.name,
+          startTime: updatedEvent.startTime, 
+          endTime: updatedEvent.endTime, 
+          color: updatedEvent.color,
+        }),
       });
       if (response.ok) {
-        const updatedEvent = await response.json();
+        const updatedEventFromServer = await response.json();
         setEvents((prevEvents) =>
-          prevEvents.map((e) =>
-            e.id === updatedEvent.id ? updatedEvent : e
-          )
-        ); 
+          prevEvents.map((e) => (e.id === updatedEvent.id ? updatedEventFromServer : e))
+        );
       } else {
         console.error("Failed to update event");
       }
     } catch (error) {
       console.error("Error updating event:", error);
     }
-  };
+  };  
+  
 
   const deleteEvent = async (eventId) => {
     try {
       const response = await fetch(`http://localhost:8080/api/events/${eventId}`, {
-        method: "DELETE", 
+        method: "DELETE",
       });
   
       if (response.ok) {
-        setEvents((prevEvents) =>
-          prevEvents.filter((e) => e.id !== eventId)
-        ); 
+        setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
       } else {
         console.error("Failed to delete event");
       }
     } catch (error) {
       console.error("Error deleting event:", error);
     }
-  };  
+  };
   
-
   const handleDateClick = (info) => {
     const title = prompt("Enter event title:");
     if (title) {
@@ -136,28 +168,30 @@ const Calendar = () => {
   const handleDeleteEvent = (event) => {
     if (event) {
       if (confirm(`Delete event '${event.title}'?`)) {
-        const filteredEvents = events.filter(
-          (e) => e.title !== event.title || e.start !== event.startStr
-        );
-        setEvents(filteredEvents);
-        setSelectedEvent(null); 
+        deleteEvent(event.id); 
       }
     }
   };
-
+  
   const handleEventChange = async (info) => {
     const updatedEvent = {
-      id: info.event.id, 
-      name: info.event.title, 
-      startTime: info.event.start.toISOString(), 
-      endTime: info.event.end ? info.event.end.toISOString() : null, 
+      id: info.event.id,
+      name: info.event.title,
+      startTime: info.event.start.toISOString(),
+      endTime: info.event.end ? info.event.end.toISOString() : null,
+      color: info.event.backgroundColor,
     };
   
-    console.log("Updated Event:", updatedEvent);
+    setEvents((prevEvents) => {
+      const updatedEvents = prevEvents.map((e) =>
+        e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
+      );
+      return [...updatedEvents]; 
+    });
   
     try {
       const res = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
-        method: "PUT", 
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -165,15 +199,17 @@ const Calendar = () => {
       });
   
       if (!res.ok) {
-        throw new Error(`Failed to update event: ${res.statusText}`);
+        throw new Error("Failed to update event");
       }
   
       console.log("Event successfully updated");
     } catch (error) {
       console.error("Error updating event:", error);
+     
+      fetchEventsFromBackend(); 
     }
-  };  
-
+  };
+    
   const handleKeydown = (event) => {
     if (event.key === 'Backspace' && selectedEvent) {
       handleDeleteEvent(selectedEvent);
@@ -206,12 +242,13 @@ const Calendar = () => {
         eventChange={(info) => {
           const updatedEvent = {
             id: info.event.id, 
-            title: info.event.name, 
-            start: info.event.startTime.toISOString(), 
-            end: info.event.endTime.toISOString(), 
+            name: info.event.title, 
+            startTime: info.event.start.toISOString(),
+            endTime: info.event.end ? info.event.end.toISOString() : null,
+            color: info.event.backgroundColor,
           };
-          updateEvent(updatedEvent); 
-        }}
+          updateEvent(updatedEvent);
+        }}        
         eventRemove={(info) => {
           deleteEvent(info.event.id); 
         }}
@@ -221,21 +258,3 @@ const Calendar = () => {
 };
 
 export default Calendar;
-
-// const Calendar = () => {
-//   const [events, setEvents] = useState([]); // State to hold fetched events
-
-//   // Fetch events from the backend
-//   useEffect(() => {
-//     const fetchEvents = async () => {
-//       try {
-//         const response = await fetch("http://localhost:8080/api/events");
-//         const data = await response.json();
-//         setEvents(data);
-//       } catch (error) {
-//         console.error("Failed to fetch events:", error);
-//       }
-//     };
-
-//     fetchEvents();
-//   }, []);
