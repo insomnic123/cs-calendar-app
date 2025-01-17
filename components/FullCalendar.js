@@ -68,7 +68,7 @@ const Calendar = () => {
       if (response.ok) {
         const createdEvent = await response.json();
         const formattedEvent = {
-          id: createdEvent.id, // ensure 'id' is included
+          id: createdEvent.id,
           title: createdEvent.name,
           start: createdEvent.startTime,
           end: createdEvent.endTime,
@@ -84,6 +84,7 @@ const Calendar = () => {
       console.error("Error creating event:", error);
     }
   };
+  
 
   const fetchEventsFromBackend = async () => {
     try {
@@ -98,11 +99,12 @@ const Calendar = () => {
         color: event.color,
       }));
   
-      setEvents(formattedEvents);
+      setEvents([...formattedEvents]);
     } catch (error) {
       console.error("Failed to fetch events:", error);
     }
-  };  
+  };
+  
   
   const updateEvent = async (updatedEvent) => {
     try {
@@ -140,6 +142,7 @@ const Calendar = () => {
       });
   
       if (response.ok) {
+        // Update the state immediately by removing the event
         setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
       } else {
         console.error("Failed to delete event");
@@ -148,6 +151,7 @@ const Calendar = () => {
       console.error("Error deleting event:", error);
     }
   };
+  
   
   const handleDateClick = (info) => {
     const title = prompt("Enter event title:");
@@ -241,14 +245,19 @@ const Calendar = () => {
         eventClick={handleEventClick}
         eventChange={(info) => {
           const updatedEvent = {
-            id: info.event.id, 
-            name: info.event.title, 
+            id: info.event.id,
+            name: info.event.title,
             startTime: info.event.start.toISOString(),
             endTime: info.event.end ? info.event.end.toISOString() : null,
             color: info.event.backgroundColor,
           };
+          setEvents((prevEvents) =>
+            prevEvents.map((e) =>
+              e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
+            )
+          );
           updateEvent(updatedEvent);
-        }}        
+        }}         
         eventRemove={(info) => {
           deleteEvent(info.event.id); 
         }}
