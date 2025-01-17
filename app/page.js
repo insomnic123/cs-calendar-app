@@ -44,7 +44,28 @@ export default function Home() {
       <div className="calContent">
         <Fc />
       </div>
-      <div className="calSideBarB"></div>
-    </div>
+      <div className="calSideBarB">
+        <h3>Add New Event</h3>
+        <form id="event-form">
+          <label>
+            Title:
+            <input type="text" id="event-title" required />
+          </label>
+          <label>
+            Start Time:
+            <input type="datetime-local" id="event-start" required />
+          </label>
+          <label>
+            End Time:
+            <input type="datetime-local" id="event-end" />
+          </label>
+          <label>
+            Color:
+            <input type="color" id="event-color" />
+          </label>
+          <button type="button" id="save-event">Save Event</button>
+          <button type="button" id="cancel-event">Cancel</button>
+        </form>
+      </div>
   );
 }
