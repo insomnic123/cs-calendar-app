@@ -1,6 +1,7 @@
 import csv
 import json
 
+# Maps CSV inputs to appropriate JSON inputs
 CSV_TO_JSON_MAPPING = {
     "Title": "name",
     "Description": None,  
