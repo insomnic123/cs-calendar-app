@@ -52,6 +52,7 @@ body {
   display: none; /* Chrome, Safari, and Edge */
 }
 
+
 .calSideBarA {
   height: 100vh; /* Full-height: remove this if you want "auto" height */
   width: 300px; /* Set the width of the sidebar */
@@ -69,23 +70,125 @@ body {
   border-width: 1px;
 }
 
-
 .calSideBarB {
   position: fixed;
-  height: 100vh; /* Full-height: remove this if you want "auto" height */
-  width: 300px; /* Set the width of the sidebar */
-  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
-  z-index: 1; /* Stay on top */
-  top: 0; /* Stay at the top */
+  height: 100vh; 
+  width: 300px; 
+  position: fixed; 
+  z-index: 1; 
+  top: 0; 
   right: 0;
-  background-color: #262626; /* Black */
-  overflow-x: hidden; /* Disable horizontal scroll */
+  background-color: #1A1A1A; 
+  overflow-x: hidden; 
   padding-top: 20px;
   padding-left: 20px;
   border-style: solid;
   border-right: #FFF;
   border-top: 0px;
   border-width: 1px;
+}
+
+.event-title {
+  margin-top: 5%;
+  margin-bottom: 5%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  vertical-align: baseline;
+  font-weight: 400;
+  line-height: 1.29;
+  letter-spacing: .16px;
+  border-radius: 0;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  width: 95%;
+  height: 40px;
+  border: none;
+  border-bottom: 1px solid #8d8d8d;
+  background-color: #1A1A1A;
+  padding: 0 16px;
+  color: #ffffff;
+  
+  transition: background-color 70ms cubic-bezier(.2,0,.38,.9),outline 70ms cubic-bezier(.2,0,.38,.9);  
+  :focus{
+      outline: 2px solid #0f62fe;
+      outline-offset: -2px;
+    }
+}
+
+input[type=text]:focus {
+  background-color: #262626;
+}
+
+.event-color {
+  margin-top: 20px;
+}
+
+/* From https://copy-paste-css.com/ */
+.save-event {
+  display: inline-block;
+  outline: none;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 2px 16px;
+  margin-left: 6%;
+  height: 32px;
+  min-width: 60px;
+  min-height: 32px;
+  border: none;
+  color: #fff;
+  background-color: #F31260;
+  transition: background-color .17s ease,color .17s ease;
+  :hover {
+      background-color: #ff347b;
+  }
+}
+
+.sideMenuBButtons {
+  margin-top: 20px;
+}
+
+.cancel-event {
+  display: inline-block;
+  outline: none;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 2px 16px;
+  height: 32px;
+  margin-left: 10%;
+  min-width: 60px;
+  min-height: 32px;
+  border: none;
+  color: #fff;
+  background-color: #4f545c;
+  transition: background-color .17s ease,color .17s ease;
+}
+
+.eventMenuTitle {
+  font-size: 32px;
+  text-align: center;
+}
+
+.input-titles {
+  font-size: 16px;
+}
+
+.timeInputs {
+  width: 95%;
+}
+
+.start-time {
+  margin-top: 15px;
+}
+
+.endTime {
+  margin-top:20px;
 }
 
 /* Customize the label (the container) */

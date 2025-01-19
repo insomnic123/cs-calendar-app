@@ -33,6 +33,47 @@ const Calendar = () => {
     fetchEvents();
   }, []);
 
+  // useEffect(() => {
+  //   const cancelButton = document.querySelector("cancel-event");
+  //   if (cancelButton) {
+  //     cancelButton.addEventListener('click', handleCancel);
+  // } else {
+  //     console.error('Cancel button not found!');
+  // }
+  
+  //   return () => {
+  //     cancelButton.removeEventListener("click", () => {});
+  //   };
+  // }, []);
+
+  // useEffect(() => {
+  //   const saveButton = document.getElementsByClassName("save-event");
+  //   saveButton.addEventListener("click", () => {
+  //     const title = document.getElementsByClassName("event-title").value;
+  //     const startTime = document.getElementsByClassName("event-start").value;
+  //     const endTime = document.getElementsByClassName("event-end").value;
+  //     const color = document.getElementsByClassName("event-color").value;
+  
+  //     const newEvent = {
+  //       name: title,
+  //       startTime,
+  //       endTime,
+  //       color,
+  //     };
+  
+  //     createEvent(newEvent); // Save the event using your existing logic
+  
+  //     // Hide the menu
+  //     const sideMenu = document.getElementById("side-menu");
+  //     sideMenu.classList.remove("active");
+  //   });
+  
+  //   return () => {
+  //     saveButton.removeEventListener("click", () => {});
+  //   };
+  // }, []);
+  
+
   // handle WebSocket updates for real-time events
   useEffect(() => {
     connectWebSocket((newEvent) => {
@@ -84,7 +125,7 @@ const Calendar = () => {
       console.error("Error creating event:", error);
     }
   };
-  
+
 
   const fetchEventsFromBackend = async () => {
     try {
@@ -164,6 +205,12 @@ const Calendar = () => {
       createEvent(newEvent); 
     }
   };
+
+  // const handleDateClick = (info) => {
+  //   const sideMenu = document.getElementsByClassName("wtv");
+  //   sideMenu.classList.add("active");
+  //   document.getElementById("event-start").value = info.dateStr;
+  // };
   
   const handleEventClick = (info) => {
     setSelectedEvent(info.event);
@@ -186,13 +233,14 @@ const Calendar = () => {
       color: info.event.backgroundColor,
     };
   
+    // Optimistically update the UI immediately to show the changes
     setEvents((prevEvents) => {
-      const updatedEvents = prevEvents.map((e) =>
+      return prevEvents.map((e) =>
         e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
       );
-      return [...updatedEvents]; 
     });
   
+    // Send the update to the server
     try {
       const res = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
         method: "PUT",
@@ -209,10 +257,49 @@ const Calendar = () => {
       console.log("Event successfully updated");
     } catch (error) {
       console.error("Error updating event:", error);
-     
-      fetchEventsFromBackend(); 
+  
+      // If the update fails, refresh events from the server
+      fetchEventsFromBackend();
     }
   };
+  
+
+  // const handleEventChange = async (info) => {
+  //   const updatedEvent = {
+  //     id: info.event.id,
+  //     name: info.event.title,
+  //     startTime: info.event.start.toISOString(),
+  //     endTime: info.event.end ? info.event.end.toISOString() : null,
+  //     color: info.event.backgroundColor,
+  //   };
+  
+  //   setEvents((prevEvents) => {
+  //     const updatedEvents = prevEvents.map((e) =>
+  //       e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
+  //     );
+  //     return [...updatedEvents]; 
+  //   });
+  
+  //   try {
+  //     const res = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(updatedEvent),
+  //     });
+  
+  //     if (!res.ok) {
+  //       throw new Error("Failed to update event");
+  //     }
+  
+  //     console.log("Event successfully updated");
+  //   } catch (error) {
+  //     console.error("Error updating event:", error);
+     
+  //     fetchEventsFromBackend(); 
+  //   }
+  // };
     
   const handleKeydown = (event) => {
     if (event.key === 'Backspace' && selectedEvent) {
@@ -228,42 +315,50 @@ const Calendar = () => {
     };
   }, [selectedEvent]);
 
-  return (
+//   return (
+//     <div className="calMain">
+//       <FullCalendar
+//         height={'100vh'}
+//         initialView="timeGridWeek"
+//         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
+//         titleFormat={{ month: 'long', year: 'numeric' }}
+//         header={{
+//           center: 'title',
+//         }}
+//         events={events}
+//         nowIndicator={true}
+//         editable={true} 
+//         dateClick={handleDateClick}
+//         eventClick={handleEventClick}
+//         eventChange={(info) => {
+//           handleEventChange(info);  // Call handleEventChange when an event is changed
+//         }}             
+//         eventRemove={(info) => {
+//           deleteEvent(info.event.id); 
+//         }}
+//       />
+//     </div>
+//   );
+// };
+return (
     <div className="calMain">
       <FullCalendar
         height={'100vh'}
         initialView="timeGridWeek"
         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
         titleFormat={{ month: 'long', year: 'numeric' }}
-        header={{
-          center: 'title',
-        }}
+        header={{ center: 'title' }}
         events={events}
         nowIndicator={true}
         editable={true} 
         dateClick={handleDateClick}
         eventClick={handleEventClick}
-        eventChange={(info) => {
-          const updatedEvent = {
-            id: info.event.id,
-            name: info.event.title,
-            startTime: info.event.start.toISOString(),
-            endTime: info.event.end ? info.event.end.toISOString() : null,
-            color: info.event.backgroundColor,
-          };
-          setEvents((prevEvents) =>
-            prevEvents.map((e) =>
-              e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
-            )
-          );
-          updateEvent(updatedEvent);
-        }}         
-        eventRemove={(info) => {
-          deleteEvent(info.event.id); 
-        }}
+        eventChange={(info) => handleEventChange(info)}
+        eventRemove={(info) => deleteEvent(info.event.id)} 
       />
     </div>
   );
 };
+
 
 export default Calendar;
