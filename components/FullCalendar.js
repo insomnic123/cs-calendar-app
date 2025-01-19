@@ -1,7 +1,7 @@
-"use client";
+"use client"; // Renders everything client-side
 
 // import React, { useState } from 'react';
-import { connectWebSocket, disconnectWebSocket } from "./Websocket";
+import { connectWebSocket, disconnectWebSocket } from "./Websocket"; // Imports websocket component
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -9,13 +9,16 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import React, { useState, useEffect } from 'react';
 
 const Calendar = () => {
-  const [events, setEvents] = useState([]); 
+  const [events, setEvents] = useState([]); // State holding list of events displayed
+  
+  // fetches events from backend
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/events");
+        const res = await fetch("http://localhost:8080/api/events"); // backend URL
         const data = await res.json();
 
+        // formats events as per what is provided on the backend
         const formattedEvents = data.map((event) => ({
           id: event.id,
           title: event.name,
@@ -24,61 +27,20 @@ const Calendar = () => {
           color: event.color,
         }));
 
-        setEvents(formattedEvents);
+        setEvents(formattedEvents); // Displays events when fetched 
       } catch (error) {
         console.error("Failed to fetch events:", error);
       }
     };
 
-    fetchEvents();
-  }, []);
-
-  // useEffect(() => {
-  //   const cancelButton = document.querySelector("cancel-event");
-  //   if (cancelButton) {
-  //     cancelButton.addEventListener('click', handleCancel);
-  // } else {
-  //     console.error('Cancel button not found!');
-  // }
-  
-  //   return () => {
-  //     cancelButton.removeEventListener("click", () => {});
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   const saveButton = document.getElementsByClassName("save-event");
-  //   saveButton.addEventListener("click", () => {
-  //     const title = document.getElementsByClassName("event-title").value;
-  //     const startTime = document.getElementsByClassName("event-start").value;
-  //     const endTime = document.getElementsByClassName("event-end").value;
-  //     const color = document.getElementsByClassName("event-color").value;
-  
-  //     const newEvent = {
-  //       name: title,
-  //       startTime,
-  //       endTime,
-  //       color,
-  //     };
-  
-  //     createEvent(newEvent); // Save the event using your existing logic
-  
-  //     // Hide the menu
-  //     const sideMenu = document.getElementById("side-menu");
-  //     sideMenu.classList.remove("active");
-  //   });
-  
-  //   return () => {
-  //     saveButton.removeEventListener("click", () => {});
-  //   };
-  // }, []);
-  
+    fetchEvents(); // Call to fetch events
+  }, []); // Empty dependency ensures it is called only once
 
   // handle WebSocket updates for real-time events
   useEffect(() => {
     connectWebSocket((newEvent) => {
       console.log("New WebSocket Event:", newEvent);
-      setEvents((prevEvents) => [
+      setEvents((prevEvents) => [ // adds new events to the calendar 
         ...prevEvents,
         {
           id: newEvent.id,
@@ -93,9 +55,11 @@ const Calendar = () => {
     return () => disconnectWebSocket();
   }, []);
   
+  // State for the currently selected event
   const [selectedEvent, setSelectedEvent] = useState(null); 
   const [lastClickTime, setLastClickTime] = useState(null); 
 
+  // Create a new event and send it to the backend using the POST request
   const createEvent = async (newEvent) => {
     try {
       const response = await fetch("http://localhost:8080/api/events", {
@@ -126,7 +90,7 @@ const Calendar = () => {
     }
   };
 
-
+  // Added redundancy due to persisting errors of the events displaying incorrectly
   const fetchEventsFromBackend = async () => {
     try {
       const res = await fetch("http://localhost:8080/api/events");
@@ -146,7 +110,7 @@ const Calendar = () => {
     }
   };
   
-  
+  // Updates existing events in the backend and the state
   const updateEvent = async (updatedEvent) => {
     try {
       const response = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
@@ -164,6 +128,7 @@ const Calendar = () => {
       });
       if (response.ok) {
         const updatedEventFromServer = await response.json();
+        // Update state with new info
         setEvents((prevEvents) =>
           prevEvents.map((e) => (e.id === updatedEvent.id ? updatedEventFromServer : e))
         );
@@ -175,7 +140,7 @@ const Calendar = () => {
     }
   };  
   
-
+  // Deletes events using the DELETE request
   const deleteEvent = async (eventId) => {
     try {
       const response = await fetch(`http://localhost:8080/api/events/${eventId}`, {
@@ -183,7 +148,7 @@ const Calendar = () => {
       });
   
       if (response.ok) {
-        // Update the state immediately by removing the event
+        // updates the state immediately by removing the event
         setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
       } else {
         console.error("Failed to delete event");
@@ -193,7 +158,7 @@ const Calendar = () => {
     }
   };
   
-  
+  // Creates events when an individual clikcs on the calendar 
   const handleDateClick = (info) => {
     const title = prompt("Enter event title:");
     if (title) {
@@ -205,25 +170,26 @@ const Calendar = () => {
       createEvent(newEvent); 
     }
   };
-
-  // const handleDateClick = (info) => {
-  //   const sideMenu = document.getElementsByClassName("wtv");
-  //   sideMenu.classList.add("active");
-  //   document.getElementById("event-start").value = info.dateStr;
-  // };
   
+  // Selects events
   const handleEventClick = (info) => {
     setSelectedEvent(info.event);
   };
 
+  // Handles events being deleted by clicking backspace
   const handleDeleteEvent = (event) => {
     if (event) {
       if (confirm(`Delete event '${event.title}'?`)) {
-        deleteEvent(event.id); 
+        deleteEvent(event.id).then(() => {
+          setSelectedEvent(null); // clears selection after the event has been deleted 
+        }).catch((error) => {
+          console.error("Error deleting event:", error);
+        });
       }
     }
   };
   
+  // Handles when event information and data is changed
   const handleEventChange = async (info) => {
     const updatedEvent = {
       id: info.event.id,
@@ -233,7 +199,7 @@ const Calendar = () => {
       color: info.event.backgroundColor,
     };
   
-    // Optimistically update the UI immediately to show the changes
+    // updates the UI immediately to show the changes
     setEvents((prevEvents) => {
       return prevEvents.map((e) =>
         e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
@@ -263,50 +229,14 @@ const Calendar = () => {
     }
   };
   
-
-  // const handleEventChange = async (info) => {
-  //   const updatedEvent = {
-  //     id: info.event.id,
-  //     name: info.event.title,
-  //     startTime: info.event.start.toISOString(),
-  //     endTime: info.event.end ? info.event.end.toISOString() : null,
-  //     color: info.event.backgroundColor,
-  //   };
-  
-  //   setEvents((prevEvents) => {
-  //     const updatedEvents = prevEvents.map((e) =>
-  //       e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e
-  //     );
-  //     return [...updatedEvents]; 
-  //   });
-  
-  //   try {
-  //     const res = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(updatedEvent),
-  //     });
-  
-  //     if (!res.ok) {
-  //       throw new Error("Failed to update event");
-  //     }
-  
-  //     console.log("Event successfully updated");
-  //   } catch (error) {
-  //     console.error("Error updating event:", error);
-     
-  //     fetchEventsFromBackend(); 
-  //   }
-  // };
-    
+  // Ensures events are deleted when backspace is clicked
   const handleKeydown = (event) => {
     if (event.key === 'Backspace' && selectedEvent) {
       handleDeleteEvent(selectedEvent);
     }
   };
 
+  // Adds listeners for keyboard functionality
   React.useEffect(() => {
     document.addEventListener('keydown', handleKeydown);
 
@@ -315,50 +245,25 @@ const Calendar = () => {
     };
   }, [selectedEvent]);
 
-//   return (
-//     <div className="calMain">
-//       <FullCalendar
-//         height={'100vh'}
-//         initialView="timeGridWeek"
-//         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
-//         titleFormat={{ month: 'long', year: 'numeric' }}
-//         header={{
-//           center: 'title',
-//         }}
-//         events={events}
-//         nowIndicator={true}
-//         editable={true} 
-//         dateClick={handleDateClick}
-//         eventClick={handleEventClick}
-//         eventChange={(info) => {
-//           handleEventChange(info);  // Call handleEventChange when an event is changed
-//         }}             
-//         eventRemove={(info) => {
-//           deleteEvent(info.event.id); 
-//         }}
-//       />
-//     </div>
-//   );
-// };
-return (
-    <div className="calMain">
-      <FullCalendar
-        height={'100vh'}
-        initialView="timeGridWeek"
-        plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
-        titleFormat={{ month: 'long', year: 'numeric' }}
-        header={{ center: 'title' }}
-        events={events}
-        nowIndicator={true}
-        editable={true} 
-        dateClick={handleDateClick}
-        eventClick={handleEventClick}
-        eventChange={(info) => handleEventChange(info)}
-        eventRemove={(info) => deleteEvent(info.event.id)} 
-      />
-    </div>
-  );
-};
-
+  // Returns fullCalendar component
+  return (
+        <div className="calMain">
+          <FullCalendar
+            height={'100vh'} // ensures full height of the screen is taken up
+            initialView="timeGridWeek"
+            plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
+            titleFormat={{ month: 'long', year: 'numeric' }}
+            header={{ center: 'title' }}
+            events={events}
+            nowIndicator={true}
+            editable={true} 
+            dateClick={handleDateClick}
+            eventClick={handleEventClick}
+            eventChange={(info) => handleEventChange(info)}
+            eventRemove={(info) => deleteEvent(info.event.id)} 
+          />
+        </div>
+      );
+    };
 
 export default Calendar;

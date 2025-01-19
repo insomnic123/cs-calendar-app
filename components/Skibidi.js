@@ -1,5 +1,7 @@
 "use client";
 
+// Was used initially to see if frontend and backend connections were successful
+
 import { useEffect, useState } from 'react';
 
 export default function Skibidi() {

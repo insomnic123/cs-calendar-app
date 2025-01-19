@@ -3,6 +3,7 @@ import SockJS from "sockjs-client";
 
 let stompClient = null;
 
+// Connects to websocket
 export const connectWebSocket = (onEventReceived) => {
   const socket = new SockJS("http://localhost:8080/ws"); 
   stompClient = Stomp.over(socket);

@@ -1,23 +1,22 @@
-"use client";
+"use client"; // Renders everything clientside
 
-import Image from "next/image";
 import Skibidi from '@/components/Skibidi';
 import {Calendar} from "@nextui-org/calendar";
-import {today, getLocalTimeZone} from "@internationalized/date";
+import {today, getLocalTimeZone} from "@internationalized/date"; // imports current date and time
 import React, {useState} from 'react';
 import dynamic from 'next/dynamic';
 
-// import {Button} from "@/components/Button"
-
-const Fc = dynamic(() => import('@/components/FullCalendar.js'), { ssr: false });
+const Fc = dynamic(() => import('@/components/FullCalendar.js'), { ssr: false }); // imports full calendar component
 
 export default function Home() {
+  // State variables for managing form inputs
   const [title, setTitle] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [color, setColor] = useState('#000000');
+  const [color, setColor] = useState('#8402C0');
   const [selectedEvent, setSelectedEvent] = useState(null);
 
+  // Creates event using POST request, similar to Full Calendar Component
   const createEvent = async (newEvent) => {
     try {
       const response = await fetch("http://localhost:8080/api/events", {
@@ -38,7 +37,6 @@ export default function Home() {
           color: createdEvent.color,
         };
   
-        // Here you should notify the calendar to update events
         setEvents((prevEvents) => [...prevEvents, formattedEvent]); // Update the events state
       } else {
         console.error("Failed to create event");
@@ -48,6 +46,7 @@ export default function Home() {
     }
   };
   
+  // Updates events using PUT HTTP request
   const updateEvent = async (updatedEvent) => {
     try {
       const response = await fetch(`http://localhost:8080/api/events/${updatedEvent.id}`, {
@@ -68,7 +67,7 @@ export default function Home() {
         const updatedEventFromServer = await response.json();
         setEvents((prevEvents) =>
           prevEvents.map((e) => (e.id === updatedEvent.id ? updatedEventFromServer : e))
-        );
+        ); // Updates state of events
       } else {
         console.error("Failed to update event");
       }
@@ -77,12 +76,14 @@ export default function Home() {
     }
   };
 
+  // Handles the form being submitted 
   const handleFormSubmit = (e) => {
     e.preventDefault();
   
+    // Code which might be used for a later implementation of having a dynamic menu which allows for both creation and editing of events
     if (title && startTime && endTime) {
       if (selectedEvent) {
-        // Update existing event
+        // update existing event
         const updatedEvent = {
           id: selectedEvent.id,
           name: title,
@@ -90,8 +91,8 @@ export default function Home() {
           endTime,
           color,
         };
-        updateEvent(updatedEvent); // Call the update logic
-        setSelectedEvent(null); // Reset the selection
+        updateEvent(updatedEvent); // call the update logic
+        setSelectedEvent(null); // reset the selection
       } else {
         // Create a new event
         const newEvent = {
@@ -100,10 +101,10 @@ export default function Home() {
           endTime,
           color,
         };
-        createEvent(newEvent); // Call the creation logic
+        createEvent(newEvent); 
       }
   
-      // Reset form fields
+      // reset form fields
       setTitle('');
       setStartTime('');
       setEndTime('');
@@ -111,14 +112,16 @@ export default function Home() {
     }
   };
 
+  // Handles when event is clicked for future implementations
   const handleEventClick = (event) => {
-    setSelectedEvent(event); // Store the clicked event
+    setSelectedEvent(event); 
     setTitle(event.title); // Populate form fields
     setStartTime(event.start); 
     setEndTime(event.end); 
     setColor(event.backgroundColor || '#000000');
   };
   
+  // Main Page Logic
   return (
     <div className="calMain">
       <div className="calSideBarA">
